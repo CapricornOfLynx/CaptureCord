@@ -21,7 +21,7 @@
 
 - Device notifications, debounced reconnect and opt-in automatic session recovery.
 - More native-buffer layout coverage and hardware-in-loop tests.
-- Further accessibility work, per-monitor fullscreen validation and capture-only sharing window. Fully templated dark selectors and focus/selection states are implemented.
+- Further accessibility work and per-monitor fullscreen validation. A separate borderless clean-feed sharing window, fully templated dark selectors and focus/selection states are implemented.
 - Signed release packaging, reproducible release instructions and source archives with every binary release.
 - DirectShow fallback only for demonstrated hardware gaps and after dependency/license review.
 

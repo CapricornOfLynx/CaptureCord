@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private int frameWidth, frameHeight;
     private string rendererStatus = "WPF CPU upload";
     private long presentationSkipped;
+    private CleanFeedWindow? cleanFeed;
 
     public MainWindow() : this(false) { }
     internal MainWindow(bool smokeTest)
@@ -72,6 +73,7 @@ public partial class MainWindow : Window
                 permissionWindow.UpdateLayout();
                 permissionWindow.Close();
                 await GpuSmokeCheck.VerifyAsync(this, GpuPreview);
+                CleanFeedSmokeCheck.Verify(this);
                 Close();
                 return;
             }
@@ -90,6 +92,20 @@ public partial class MainWindow : Window
     private async void OnRefresh(object sender, RoutedEventArgs e)
     {
         try { await RefreshAsync(); } catch (Exception ex) { ShowError(ex); }
+    }
+    private void OnCleanFeed(object sender, RoutedEventArgs e)
+    {
+        if (cleanFeed is null)
+        {
+            // Intentionally no Owner: minimizing the controls must not minimize
+            // Discord's separate sharing target or stop its presentation.
+            cleanFeed = new();
+            cleanFeed.Closed += (_, _) => cleanFeed = null;
+            cleanFeed.Show();
+        }
+        if (cleanFeed.WindowState == WindowState.Minimized) cleanFeed.WindowState = WindowState.Normal;
+        cleanFeed.Activate();
+        Status.Text = "In Discord share the window ‘CaptureCord — Clean feed’ with sound enabled. Keep the clean feed visible; controls stay in this window.";
     }
     private async void OnPermissions(object sender, RoutedEventArgs e)
     {
@@ -206,6 +222,7 @@ public partial class MainWindow : Window
     private async Task StopAsync()
     {
         running = false;
+        cleanFeed?.Clear();
         GpuPreview.Reset();
         GpuPreview.Visibility = Visibility.Collapsed;
         StatusDot.Fill = new SolidColorBrush(Color.FromRgb(130, 152, 175));
@@ -243,6 +260,7 @@ public partial class MainWindow : Window
     private void Render(object? sender, EventArgs e)
     {
         if (!running || video?.Frames.Take() is not VideoFrame frame) return;
+        cleanFeed?.Present(frame);
         frameWidth = frame.Width; frameHeight = frame.Height;
         if (GpuEnabled.IsChecked == true && !gpuFailed)
         {
@@ -383,6 +401,7 @@ public partial class MainWindow : Window
         catch (Exception ex) { Log.Write("app.close", ex); }
         finally
         {
+            cleanFeed?.Close();
             foundation?.Dispose();
             sessionGate.Release();
             closed = true;

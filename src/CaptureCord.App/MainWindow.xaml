@@ -36,6 +36,7 @@
         <Border Height="1" Background="#28384C" Margin="0,0,0,14"/>
         <WrapPanel VerticalAlignment="Center">
           <Button x:Name="StartButton" Content="Start capture" Click="OnStartStop" Style="{StaticResource PrimaryButton}" Margin="0,0,12,4"/>
+          <Button Content="Clean feed · Discord" Click="OnCleanFeed" ToolTip="Open a separate borderless capture-only window. Select CaptureCord — Clean feed in Discord. Drag to move, resize at the edges, F11 for fullscreen, Alt+F4 to close." Margin="0,0,8,4"/>
           <Button Content="Fullscreen" ToolTip="Fullscreen · F11" Click="OnFullscreen" Margin="0,0,8,4"/>
           <Button Content="Borderless" ToolTip="Borderless with controls · F10" Click="OnBorderless" Margin="0,0,22,4"/>
           <StackPanel Orientation="Horizontal" Height="40" Margin="0,0,0,4">

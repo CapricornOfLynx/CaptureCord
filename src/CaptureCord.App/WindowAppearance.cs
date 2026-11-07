@@ -16,6 +16,14 @@ internal static class WindowAppearance
         int caption = 0x001B110B; // COLORREF: #0B111B
         _ = DwmSetWindowAttribute(handle, 35, ref caption, sizeof(int));
     }
+    public static void ApplyCleanFeed(Window window)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        int noBorder = unchecked((int)0xfffffffe); // DWMWA_COLOR_NONE, Windows 11
+        int squareCorners = 1; // DWMWCP_DONOTROUND
+        _ = DwmSetWindowAttribute(handle, 34, ref noBorder, sizeof(int));
+        _ = DwmSetWindowAttribute(handle, 33, ref squareCorners, sizeof(int));
+    }
     [DllImport("dwmapi.dll", ExactSpelling = true)]
     private static extern int DwmSetWindowAttribute(nint window, uint attribute, ref int value, int size);
 }

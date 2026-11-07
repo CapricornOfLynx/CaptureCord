@@ -40,7 +40,11 @@ The executable is `src/CaptureCord.App/bin/Release/net10.0-windows/CaptureCord.A
 2. Launch CaptureCord and select the video device and one of its native modes. The preferred default is the closest available resolution to 1080p, then the closest rate to 60 FPS.
 3. Explicitly select the card's audio input and your speakers/headphones. CaptureCord never guesses that a similarly named microphone is the HDMI input.
 4. Press **Start capture**. Use **Stop capture** before unplugging or changing modes. On failure, check cables, close conflicting apps, reconnect, refresh and start again.
-5. For Discord, share the CaptureCord **application window** with sound enabled and keep your normal microphone selected in Discord. Verify sound with a remote listener; support remains unconfirmed for this implementation. See [Discord validation](docs/discord.md).
+5. Press **Clean feed · Discord**, then share the separate **CaptureCord — Clean feed** application window in Discord with sound enabled. This borderless window contains only the capture image, without selectors, buttons, status or diagnostics. Keep your normal microphone selected in Discord. Verify sound with a remote listener; support remains unconfirmed for this implementation. See [Discord validation](docs/discord.md).
+
+The clean-feed window can stay visible while you minimize the controls. Drag the image to move it, resize at its edges, double-click or press F11 for fullscreen, press Escape to leave fullscreen, and use Alt+F4 to close it. Closing just the clean feed keeps capture/audio running; closing the main app closes both windows. Stopping capture or a device failure clears the clean feed to black. Letterboxing preserves aspect ratio when the window shape differs from the source. To hide the software UI from the stream, select the clean-feed window in Discord rather than the main window or entire desktop.
+
+The main GPU preview remains available. The clean feed deliberately uses a standard WPF Image fed from the same latest frame, adding one pixel upload while open and avoiding a native child HWND in the sharing target. It does not create another capture session or duplicate audio playback. Keep the clean feed restored (not minimized) during sharing.
 
 Windows camera and microphone privacy settings must permit desktop applications. Audio volume/mute changes CaptureCord's rendered audio and may also affect what a sharing application captures.
 

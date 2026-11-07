@@ -15,8 +15,8 @@ CaptureCord renders through WASAPI within its own process. This is intended to k
 1. Record OS build, Discord desktop version, endpoint formats, capture mode and capture-card model. Keep endpoint identifiers private.
 2. Confirm local console video and game audio with Discord closed.
 3. Join a voice channel with another listener. Select the usual microphone in Discord.
-4. Share the CaptureCord application window with sound enabled. Ask the listener to independently confirm the game picture, game sound and normal microphone.
-5. Repeat windowed, F11 fullscreen and F10 borderless. Check foreground/background and minimize/restore behavior. Record failures rather than labeling the device supported.
+4. Press **Clean feed · Discord** in CaptureCord. Share **CaptureCord — Clean feed** with sound enabled, not the controls window. Ask the listener to independently confirm an image-only view (no software chrome), game sound and the normal microphone.
+5. Repeat with the clean feed resized and in F11 fullscreen. Minimize the controls while keeping the independent clean feed restored. Check foreground/background and minimize/restore behavior. Also compare main-window GPU/WPF capture if relevant. Record failures rather than labeling the device supported.
 6. Test mute/volume, audio device changes after stop/restart, and capture reconnect. Confirm stopping removes game audio and releases devices.
 7. Run a synchronization test signal for at least 30 minutes. Record listener-observed offset and drift separately from local offset.
 
