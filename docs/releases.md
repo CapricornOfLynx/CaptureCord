@@ -1,10 +1,10 @@
 # Release builds
 
-The initial prerelease is `v0.1.0-alpha.1`. Use the .NET SDK **10.0.403** for this pinned single-file packaging graph. Release runtime packs and the SDK's ILLink bundling tasks are pinned to **10.0.14**. Update the SDK/runtime pins, reviewed license allowlist and separate `packages.release.lock.json` files together for future servicing releases. Normal development retains its own `packages.lock.json` files.
+The current prerelease is `v0.1.0-alpha.2`, fixing empty capture-mode lists in the initial alpha. Use the .NET SDK **10.0.403** for this pinned single-file packaging graph. Release runtime packs and the SDK's ILLink bundling tasks are pinned to **10.0.14**. Update the SDK/runtime pins, reviewed license allowlist and separate `packages.release.lock.json` files together for future servicing releases. Normal development retains its own `packages.lock.json` files.
 
 ```powershell
 ./scripts/verify.ps1
-./scripts/package-release.ps1 -Version 0.1.0-alpha.1
+./scripts/package-release.ps1 -Version 0.1.0-alpha.2
 ```
 
 Packaging performs a locked self-contained win-x64 publish, preserves the GPL license, NAudio notice and runtime package license/third-party notices, checks dependency licenses, smoke-tests the actual bundled EXE, then creates the distribution ZIP and SHA-256 file under `artifacts/release`. The ZIP contains one EXE, documentation and notices. Native .NET components extract to a user-writable location on first launch; the application requires no administrator privileges. Output is not code-signed.

@@ -22,7 +22,7 @@ Initialization or presentation errors release GPU objects and switch to Writeabl
 
 HWND airspace means WPF overlays are not composited over the live GPU child window. Controls are outside the preview, and the native child is hidden while idle. Discord capture of the native child must be validated independently. The main window forwards preview mouse interaction to WPF, preserving double-click fullscreen behavior.
 
-Stopping cancels the loop and calls source shutdown on a worker to interrupt pending reads, awaits the loop, and releases the reader/source before platform shutdown. A broken driver could still stall a native call; forced termination of native code is not attempted. The UI serializes start/stop/close, tears down both streams on a reported failure, and supports explicit refresh/restart after reconnect. No automatic reactivation of a camera or microphone occurs.
+The source reader is configured with MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN: its caller owns source shutdown. Reader disposal must not implicitly close a source that the caller still owns. Shutdown tolerates MF_E_SHUTDOWN from a source already closed during stop/disconnect; other errors remain visible. This prevents cleanup from discarding successfully enumerated modes. Stopping cancels the loop and calls source shutdown on a worker to interrupt pending reads, awaits the loop, and releases the reader/source before platform shutdown. A broken driver could still stall a native call; forced termination of native code is not attempted. The UI serializes start/stop/close, tears down both streams on a reported failure, and supports explicit refresh/restart after reconnect. No automatic reactivation of a camera or microphone occurs.
 
 ## Audio
 

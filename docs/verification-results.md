@@ -6,11 +6,12 @@ Date: 2026-11-07. Environment: Windows x64, .NET SDK 10.0.403.
 | --- | --- |
 | Locked restore | Passed |
 | Release solution build | Passed, zero warnings and errors |
-| Executable automated suite | 11/11 checks passed, including permission policy/API and native memory-buffer tests |
+| Executable automated suite | 12/12 checks passed, including source-reader lifetime/shutdown regression, permission policy/API and native memory-buffer tests |
 | Direct/transitive license allowlist | Passed: NAudio.Wasapi 2.2.1 and NAudio.Core 2.2.1, MIT |
 | Invisible WPF startup and shutdown | Passed after correcting test startup and deferred close |
 | Dropdown UI regression checks | Passed: all four custom dropdown templates open/select, text contrast at least 4.5:1, full/compact window and popup snapshots |
 | Native discovery probe | Passed: one video device, six audio capture endpoints, ten playback endpoints; identities omitted |
+| Alpha.2 real-device mode probe | Passed: two video devices returned 24 and 159 modes, including 1080p60 on the second device; repeated enumeration after cleanup succeeded for both |
 | Framework-dependent Release publish | Passed; local output in artifacts/CaptureCord |
 | Physical HDMI video/audio, disconnect and long-session tests | Not performed |
 | Discord video/application audio and microphone coexistence | Not performed |

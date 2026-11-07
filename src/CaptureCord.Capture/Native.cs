@@ -46,7 +46,13 @@ internal sealed unsafe class Com(nint pointer) : IDisposable
         try { return Marshal.PtrToStringUni(text, checked((int)length)) ?? ""; }
         finally { Marshal.FreeCoTaskMem(text); }
     }
-    public void ShutdownSource() => Native.Check(((delegate* unmanaged[Stdcall]<nint, int>)Slot(12))(Pointer));
+    public void ShutdownSource()
+    {
+        var hr = ((delegate* unmanaged[Stdcall]<nint, int>)Slot(12))(Pointer);
+        // Stop/disconnect may already have shut down the source. Cleanup must not
+        // replace a successfully enumerated result or an earlier capture error.
+        if (hr != unchecked((int)0xc00d3e85)) Native.Check(hr); // MF_E_SHUTDOWN
+    }
 }
 
 internal static class Native
@@ -64,6 +70,7 @@ internal static class Native
     public static readonly Guid Stride = new("644b4e48-1e02-4516-b0eb-c01ca9d49ac6");
     public static readonly Guid Processing = new("fb394f3d-ccf1-42ee-bbb3-f9b845d5681d");
     public static readonly Guid LowLatency = new("9c27891a-ed7a-40e1-88e8-b22727a024ee");
+    public static readonly Guid DisconnectOnShutdown = new("56b67165-219e-456d-a22e-2d3004c7fe56");
     public const uint Stream = 0xfffffffc; // MF_SOURCE_READER_FIRST_VIDEO_STREAM
     public static void Check(int hr) { Marshal.ThrowExceptionForHR(hr); }
     public static Com Attributes()
@@ -84,6 +91,8 @@ internal static class Native
         using var attributes = Attributes();
         attributes.SetUInt(Processing, 1);
         attributes.SetUInt(LowLatency, 1);
+        // The caller owns the source lifetime and always shuts it down explicitly.
+        attributes.SetUInt(DisconnectOnShutdown, 1);
         Check(MFCreateSourceReaderFromMediaSource(source.Pointer, attributes.Pointer, out var result));
         return new(result);
     }

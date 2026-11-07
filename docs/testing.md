@@ -6,6 +6,8 @@ Run `./scripts/verify.ps1` on Windows with .NET 10 SDK. Tests cover mode choice,
 
 Optional: `dotnet run --project tests/CaptureCord.Tests -c Release -- --probe` checks Media Foundation startup/discovery and WASAPI endpoint enumeration without recording media.
 
+`--probe-modes` additionally opens each video source temporarily to enumerate capabilities twice, verifying release/reopen behavior. It does not read video frames or capture audio. Unlike `--probe`, this can briefly activate device hardware and requires camera permission. Device names/IDs are not printed. A native regression test uses a generated WAV source (no physical camera) to verify that releasing a source reader preserves its caller-owned source and that repeated shutdown cannot discard successful results.
+
 ## Required hardware tests
 
 - Test a standard UVC/UAC card and, separately, the UGREEN B0DGXJS6BF reference device; record actual enumerated modes rather than marketing specifications.

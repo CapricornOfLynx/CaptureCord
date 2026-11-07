@@ -118,7 +118,7 @@ public partial class MainWindow : Window
             SelectDevice(InputSelector, devices.Item2, inputId, false);
             SelectDevice(OutputSelector, devices.Item3, outputId, true);
             await LoadModesAsync();
-            Status.Text = devices.Item1.Count == 0 ? "No video devices found. Connect a UVC capture card and refresh." : "Select an audio input and output, then start capture.";
+            if (devices.Item1.Count == 0) Status.Text = "No video devices found. Connect a UVC capture card and refresh.";
         }
         finally
         {
@@ -139,10 +139,11 @@ public partial class MainWindow : Window
     {
         var version = ++modeVersion;
         ModeSelector.ItemsSource = null;
-        if (VideoSelector.SelectedItem is not DeviceInfo device) return;
+        if (VideoSelector.SelectedItem is not DeviceInfo device) { Status.Text = "Select a video device to load capture modes."; return; }
         var permission = DevicePermissions.Check(true);
         if (permission.IsDenied) { Status.Text = permission.Description + " Choose Permissions to review access."; return; }
         pendingModes++;
+        Status.Text = "Loading capture modes…";
         StartButton.IsEnabled = false;
         await discoveryGate.WaitAsync();
         try
@@ -151,6 +152,9 @@ public partial class MainWindow : Window
             if (version != modeVersion || closing) return;
             ModeSelector.ItemsSource = modes;
             ModeSelector.SelectedItem = modes.FirstOrDefault(m => m.ToString() == settings.Mode) ?? ModeSelection.Preferred(modes);
+            Status.Text = modes.Count == 0
+                ? "The selected video device reported no capture modes. Check its connection and refresh."
+                : $"{modes.Count} capture modes available. Select your audio input and output, then start capture.";
         }
         finally
         {

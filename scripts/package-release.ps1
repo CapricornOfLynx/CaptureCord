@@ -1,4 +1,4 @@
-param([string]$Version = '0.1.0-alpha.1', [string]$RuntimeVersion = '10.0.14')
+param([string]$Version = '0.1.0-alpha.2', [string]$RuntimeVersion = '10.0.14')
 $ErrorActionPreference = 'Stop'
 if ($Version -notmatch '^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$') { throw 'Invalid release version' }
 Push-Location "$PSScriptRoot\.."

@@ -5,6 +5,7 @@ using CaptureCord.Audio;
 
 var tests = new (string Name, Action Run)[]
 {
+    ("Source reader disposal preserves caller-owned source; repeated shutdown is safe", NativeChecks.SourceOwnership),
     ("Permission policy distinguishes denial from unknown desktop status", () =>
     {
         Check(new DevicePermission("camera", PermissionStatus.DeniedBySystem).IsDenied);
@@ -79,7 +80,8 @@ foreach (var test in tests)
     try { test.Run(); Console.WriteLine("PASS " + test.Name); }
     catch (Exception e) { failed++; Console.WriteLine("FAIL " + test.Name + ": " + e.Message); }
 }
-if (args.Contains("--probe"))
+var unitFailures = failed;
+if (args.Contains("--probe") || args.Contains("--probe-modes"))
 {
     try
     {
@@ -87,11 +89,30 @@ if (args.Contains("--probe"))
         var devices = await Task.Run(VideoDevices.Enumerate);
         Console.WriteLine($"PROBE Media Foundation: {devices.Count} video device(s)");
         Console.WriteLine($"PROBE WASAPI: {AudioSession.Enumerate(true).Count} capture, {AudioSession.Enumerate(false).Count} playback endpoint(s)");
+        if (args.Contains("--probe-modes"))
+        {
+            var readableDevices = 0;
+            for (int i = 0; i < devices.Count; i++)
+            {
+                try
+                {
+                    var modes = await Task.Run(() => VideoDevices.Modes(devices[i].Id));
+                    if (modes.Count == 0) throw new Exception($"Video device {i + 1} reported no modes.");
+                    Console.WriteLine($"PROBE video device {i + 1}: {modes.Count} native modes; preferred {ModeSelection.Preferred(modes)}");
+                    var repeated = await Task.Run(() => VideoDevices.Modes(devices[i].Id));
+                    Equal(modes.Count, repeated.Count);
+                    Console.WriteLine($"PROBE video device {i + 1}: repeated enumeration succeeded after cleanup");
+                    readableDevices++;
+                }
+                catch (Exception e) { Console.WriteLine($"UNAVAILABLE video device {i + 1}: {e.GetType().Name} 0x{e.HResult:X8}"); }
+            }
+            if (readableDevices == 0) throw new Exception("No accessible device returned native modes.");
+        }
         // Enumeration only: never activate a camera or capture a microphone in a smoke test.
     }
     catch (Exception e) { failed++; Console.WriteLine($"FAIL Native probe: {e.GetType().Name} 0x{e.HResult:X8}: {e.Message}"); }
 }
-Console.WriteLine($"{tests.Length - failed}/{tests.Length} unit checks passed; failures (including probe): {failed}");
+Console.WriteLine($"{tests.Length - unitFailures}/{tests.Length} unit checks passed; failures (including probe): {failed}");
 return failed == 0 ? 0 : 1;
 
 static VideoMode Mode(int index, int width, int height, uint rate) => new(index, width, height, rate, 1, Guid.Empty);

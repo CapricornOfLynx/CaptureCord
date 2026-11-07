@@ -6,7 +6,7 @@
     <Resource Include="Assets/CaptureCord.png" />
     <None Include="Assets/Icon.xaml" />
   </ItemGroup>
-  <PropertyGroup><Version>0.1.0-alpha.1</Version><InformationalVersion>0.1.0-alpha.1</InformationalVersion></PropertyGroup>
+  <PropertyGroup><Version>0.1.0-alpha.2</Version><InformationalVersion>0.1.0-alpha.2</InformationalVersion></PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
     <ProjectReference Include="../CaptureCord.Core/CaptureCord.Core.csproj" />
