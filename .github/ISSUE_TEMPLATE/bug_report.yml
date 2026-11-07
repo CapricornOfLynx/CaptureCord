@@ -1,0 +1,17 @@
+name: Bug report
+description: Report a reproducible problem
+body:
+  - type: textarea
+    attributes:
+      label: Problem and reproduction steps
+      description: Include expected and observed behavior. Do not post personal device IDs.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: Windows build, CaptureCord version, capture card, native mode, audio format, and Discord version if relevant.
+  - type: textarea
+    attributes:
+      label: Verification and diagnostics
+      description: Include HRESULTs and sanitized logs. Distinguish local playback from remote Discord results.

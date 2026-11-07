@@ -1,0 +1,51 @@
+<Window x:Class="CaptureCord.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CaptureCord — Capture. Play. Share." Icon="Assets/CaptureCord.ico" Width="1180" Height="780" MinWidth="760" MinHeight="540"
+        Background="#0B111B" Foreground="#EDF4FC" FontFamily="Segoe UI" FontSize="12" UseLayoutRounding="True" SnapsToDevicePixels="True"
+        Loaded="OnLoaded" Closing="OnClosing" KeyDown="OnKeyDown">
+  <Grid Margin="22,0,22,14" Background="#0B111B">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid x:Name="Header" Margin="0,20,0,18">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <Image Source="Assets/CaptureCord.png" Width="44" Height="44" Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+      <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="CaptureCord" FontSize="23" FontWeight="SemiBold"/><TextBlock Text="Capture. Play. Share." FontSize="11" Foreground="{StaticResource TextSecondary}" Margin="0,2,0,0"/></StackPanel>
+      <Button Grid.Column="2" Content="↻  Refresh devices" Click="OnRefresh" x:Name="RefreshButton" VerticalAlignment="Center" ToolTip="Scan connected video and audio devices"/>
+    </Grid>
+    <Border Grid.Row="1" Background="#060A10" BorderBrush="#243346" BorderThickness="1" CornerRadius="14" MouseLeftButtonDown="OnPreviewClick">
+      <Grid Margin="1">
+        <Image x:Name="Preview" Stretch="Uniform"/>
+        <StackPanel x:Name="Placeholder" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Border Width="62" Height="62" Background="#142531" CornerRadius="18" HorizontalAlignment="Center" Margin="0,0,0,16"><Path Data="M 0,0 L 0,22 L 19,11 Z" Fill="{StaticResource Accent}" Width="19" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0,0,0"/></Border>
+          <TextBlock Text="Your next session starts here" FontSize="19" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+          <TextBlock Text="Select your video and audio devices, then start capture." Foreground="{StaticResource TextSecondary}" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+          <TextBlock Text="F11 fullscreen   ·   F10 borderless   ·   Double-click to expand" Foreground="#71869F" FontSize="11" Margin="0,18,0,0" HorizontalAlignment="Center"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Border x:Name="Controls" Grid.Row="2" Padding="18,16" Margin="0,16,0,0" Background="{StaticResource Panel}" BorderBrush="#25354A" BorderThickness="1" CornerRadius="14">
+      <StackPanel>
+        <Grid x:Name="Selectors" Margin="0,0,0,16"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="1.25*"/></Grid.ColumnDefinitions>
+          <StackPanel><TextBlock Text="VIDEO DEVICE" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="VideoSelector" SelectionChanged="OnVideoChanged" AutomationProperties.Name="Video device"/></StackPanel>
+          <StackPanel Grid.Column="2"><TextBlock Text="AUDIO INPUT" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="InputSelector" AutomationProperties.Name="Audio input"/></StackPanel>
+          <StackPanel Grid.Column="4"><TextBlock Text="AUDIO OUTPUT" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="OutputSelector" AutomationProperties.Name="Audio output"/></StackPanel>
+          <StackPanel Grid.Column="6"><TextBlock Text="CAPTURE MODE" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="ModeSelector" AutomationProperties.Name="Capture mode"/></StackPanel>
+        </Grid>
+        <Border Height="1" Background="#28384C" Margin="0,0,0,14"/>
+        <WrapPanel VerticalAlignment="Center">
+          <Button x:Name="StartButton" Content="Start capture" Click="OnStartStop" Style="{StaticResource PrimaryButton}" Margin="0,0,12,4"/>
+          <Button Content="Fullscreen" ToolTip="Fullscreen · F11" Click="OnFullscreen" Margin="0,0,8,4"/>
+          <Button Content="Borderless" ToolTip="Borderless with controls · F10" Click="OnBorderless" Margin="0,0,22,4"/>
+          <StackPanel Orientation="Horizontal" Height="40" Margin="0,0,0,4">
+            <TextBlock Text="Volume" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <Slider x:Name="Volume" Width="110" Minimum="0" Maximum="1" Value="0.8" ValueChanged="OnVolumeChanged" VerticalAlignment="Center" AutomationProperties.Name="Playback volume"/>
+            <TextBlock Text="{Binding Value, ElementName=Volume, StringFormat={}{0:P0}}" Foreground="{StaticResource TextSecondary}" Width="42" TextAlignment="Right" VerticalAlignment="Center" Margin="4,0,12,0"/>
+            <CheckBox x:Name="Mute" Content="Mute" Checked="OnMuteChanged" Unchecked="OnMuteChanged"/>
+          </StackPanel>
+        </WrapPanel>
+      </StackPanel>
+    </Border>
+    <Grid Grid.Row="3" Margin="2,12,2,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+      <Ellipse x:Name="StatusDot" Width="6" Height="6" Fill="#8298AF" Margin="0,6,9,0" VerticalAlignment="Top"/>
+      <StackPanel Grid.Column="1"><TextBlock x:Name="Status" Text="Ready to connect" TextWrapping="Wrap" FontSize="12"/><TextBlock x:Name="Diagnostics" Text="Choose a capture device to get started." FontSize="10" Foreground="#8DA2BB" TextWrapping="Wrap" Margin="0,4,0,0"/></StackPanel>
+    </Grid>
+  </Grid>
+</Window>

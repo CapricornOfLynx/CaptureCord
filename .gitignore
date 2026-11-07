@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+.vs/
+.build-home/
+.packages/
+artifacts/
+*.user
+*.suo

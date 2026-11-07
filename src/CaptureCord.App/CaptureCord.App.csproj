@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>WinExe</OutputType><UseWPF>true</UseWPF><ApplicationManifest>app.manifest</ApplicationManifest><ApplicationIcon>Assets/CaptureCord.ico</ApplicationIcon></PropertyGroup>
+  <ItemGroup>
+    <Page Remove="Assets/Icon.xaml" />
+    <Resource Include="Assets/CaptureCord.ico" />
+    <Resource Include="Assets/CaptureCord.png" />
+    <None Include="Assets/Icon.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <ProjectReference Include="../CaptureCord.Core/CaptureCord.Core.csproj" />
+    <ProjectReference Include="../CaptureCord.Capture/CaptureCord.Capture.csproj" />
+    <ProjectReference Include="../CaptureCord.Audio/CaptureCord.Audio.csproj" />
+  </ItemGroup>
+</Project>

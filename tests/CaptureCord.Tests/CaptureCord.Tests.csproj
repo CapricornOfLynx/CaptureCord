@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><AllowUnsafeBlocks>true</AllowUnsafeBlocks></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/CaptureCord.Core/CaptureCord.Core.csproj"/>
+    <ProjectReference Include="../../src/CaptureCord.Capture/CaptureCord.Capture.csproj"/>
+    <ProjectReference Include="../../src/CaptureCord.Audio/CaptureCord.Audio.csproj"/>
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1"/>
+  </ItemGroup>
+</Project>
