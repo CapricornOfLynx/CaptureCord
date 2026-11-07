@@ -20,3 +20,11 @@ Optional: `dotnet run --project tests/CaptureCord.Tests -c Release -- --probe` c
 - Complete [Discord checks](discord.md) with a remote listener and the normal microphone active.
 
 No live HDMI capture, listening test, physical reconnect test, latency measurement or Discord audio stream has been validated by automated tests. Do not infer hardware support from a successful build or device list.
+
+## Permissions, GPU and release regression checks
+
+Permission tests distinguish explicit denial from unknown desktop-app status and check the native status API without requesting consent or activating media. The WPF smoke test instantiates and closes the real permission panel. Manually test both enabled/disabled Windows camera and microphone privacy switches, cancellation, return from Settings and administrator policy denial. Do not interpret an unknown capability status as permission granted.
+
+GPU smoke checks upload synthetic frames through D3D11, copy them back to staging memory, compare all bytes, present and recreate the surface at multiple sizes. Hardware absence produces a reported skip; `--require-gpu` makes it an error. Verify live GPU/WPF switching, device-removal fallback, repeated start/stop, resizing/fullscreen, mixed-DPI monitors, minimize/restore, double-click handling and native-child Discord capture on physical hardware. Shader decoding/color conversion and end-to-end latency are outside this smoke test.
+
+The release script smoke-tests the actual self-contained single-file EXE before zipping it. Test ZIP extraction and startup on a separate Windows 10/11 x64 machine with no .NET runtime installed before calling that environment supported.

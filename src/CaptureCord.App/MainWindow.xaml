@@ -1,4 +1,4 @@
-<Window x:Class="CaptureCord.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+<Window x:Class="CaptureCord.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:CaptureCord.App"
         Title="CaptureCord — Capture. Play. Share." Icon="Assets/CaptureCord.ico" Width="1180" Height="780" MinWidth="760" MinHeight="540"
         Background="#0B111B" Foreground="#EDF4FC" FontFamily="Segoe UI" FontSize="12" UseLayoutRounding="True" SnapsToDevicePixels="True"
         Loaded="OnLoaded" Closing="OnClosing" KeyDown="OnKeyDown">
@@ -8,11 +8,15 @@
       <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
       <Image Source="Assets/CaptureCord.png" Width="44" Height="44" Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality"/>
       <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="CaptureCord" FontSize="23" FontWeight="SemiBold"/><TextBlock Text="Capture. Play. Share." FontSize="11" Foreground="{StaticResource TextSecondary}" Margin="0,2,0,0"/></StackPanel>
-      <Button Grid.Column="2" Content="↻  Refresh devices" Click="OnRefresh" x:Name="RefreshButton" VerticalAlignment="Center" ToolTip="Scan connected video and audio devices"/>
+      <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+        <Button Content="Permissions" Click="OnPermissions" Margin="0,0,10,0" ToolTip="Check camera and HDMI audio input privacy permissions"/>
+        <Button Content="↻  Refresh devices" Click="OnRefresh" x:Name="RefreshButton" ToolTip="Scan connected video and audio devices"/>
+      </StackPanel>
     </Grid>
     <Border Grid.Row="1" Background="#060A10" BorderBrush="#243346" BorderThickness="1" CornerRadius="14" MouseLeftButtonDown="OnPreviewClick">
-      <Grid Margin="1">
+      <Grid x:Name="PreviewArea" Margin="1" SizeChanged="OnPreviewSizeChanged">
         <Image x:Name="Preview" Stretch="Uniform"/>
+        <local:D3DPreview x:Name="GpuPreview" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="False"/>
         <StackPanel x:Name="Placeholder" HorizontalAlignment="Center" VerticalAlignment="Center">
           <Border Width="62" Height="62" Background="#142531" CornerRadius="18" HorizontalAlignment="Center" Margin="0,0,0,16"><Path Data="M 0,0 L 0,22 L 19,11 Z" Fill="{StaticResource Accent}" Width="19" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0,0,0"/></Border>
           <TextBlock Text="Your next session starts here" FontSize="19" FontWeight="SemiBold" HorizontalAlignment="Center"/>
@@ -39,6 +43,7 @@
             <Slider x:Name="Volume" Width="110" Minimum="0" Maximum="1" Value="0.8" ValueChanged="OnVolumeChanged" VerticalAlignment="Center" AutomationProperties.Name="Playback volume"/>
             <TextBlock Text="{Binding Value, ElementName=Volume, StringFormat={}{0:P0}}" Foreground="{StaticResource TextSecondary}" Width="42" TextAlignment="Right" VerticalAlignment="Center" Margin="4,0,12,0"/>
             <CheckBox x:Name="Mute" Content="Mute" Checked="OnMuteChanged" Unchecked="OnMuteChanged"/>
+            <CheckBox x:Name="GpuEnabled" Content="GPU preview" Checked="OnRendererChanged" Unchecked="OnRendererChanged" Margin="16,0,0,0" ToolTip="Direct3D 11 hardware presentation with automatic WPF fallback. Decoding and color conversion still use the CPU."/>
           </StackPanel>
         </WrapPanel>
       </StackPanel>

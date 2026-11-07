@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -33,6 +34,10 @@ public partial class MainWindow : Window
     private long rendered, previousRendered, previousCaptured;
     private double deliveryMs;
     private long lastStats = Stopwatch.GetTimestamp();
+    private bool gpuFailed;
+    private int frameWidth, frameHeight;
+    private string rendererStatus = "WPF CPU upload";
+    private long presentationSkipped;
 
     public MainWindow() : this(false) { }
     internal MainWindow(bool smokeTest)
@@ -47,6 +52,7 @@ public partial class MainWindow : Window
         { Left = x; Top = y; }
         Volume.Value = double.IsFinite(settings.Volume) ? Math.Clamp(settings.Volume, 0, 1) : 0.8;
         Mute.IsChecked = settings.Muted;
+        GpuEnabled.IsChecked = settings.UseGpuPreview;
         timer.Tick += UpdateDiagnostics;
     }
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -61,6 +67,11 @@ public partial class MainWindow : Window
                 if (VideoSelector is null || InputSelector is null || OutputSelector is null || Preview is null)
                     throw new InvalidOperationException("WPF controls were not initialized.");
                 await UiSmokeCheck.VerifyAsync(this, [VideoSelector, InputSelector, OutputSelector, ModeSelector]);
+                var permissionWindow = new PermissionsWindow { Owner = this, ShowInTaskbar = false, Opacity = 0 };
+                permissionWindow.Show();
+                permissionWindow.UpdateLayout();
+                permissionWindow.Close();
+                await GpuSmokeCheck.VerifyAsync(this, GpuPreview);
                 Close();
                 return;
             }
@@ -78,6 +89,12 @@ public partial class MainWindow : Window
     }
     private async void OnRefresh(object sender, RoutedEventArgs e)
     {
+        try { await RefreshAsync(); } catch (Exception ex) { ShowError(ex); }
+    }
+    private async void OnPermissions(object sender, RoutedEventArgs e)
+    {
+        new PermissionsWindow { Owner = this }.ShowDialog();
+        if (running || closing) return;
         try { await RefreshAsync(); } catch (Exception ex) { ShowError(ex); }
     }
     private async Task RefreshAsync()
@@ -123,6 +140,8 @@ public partial class MainWindow : Window
         var version = ++modeVersion;
         ModeSelector.ItemsSource = null;
         if (VideoSelector.SelectedItem is not DeviceInfo device) return;
+        var permission = DevicePermissions.Check(true);
+        if (permission.IsDenied) { Status.Text = permission.Description + " Choose Permissions to review access."; return; }
         pendingModes++;
         StartButton.IsEnabled = false;
         await discoveryGate.WaitAsync();
@@ -151,6 +170,10 @@ public partial class MainWindow : Window
     private async Task StartAsync()
     {
         if (closing) return;
+        var cameraPermission = DevicePermissions.Check(true);
+        var audioPermission = DevicePermissions.Check(false);
+        if (cameraPermission.IsDenied || audioPermission.IsDenied)
+            throw new UnauthorizedAccessException("Windows has blocked camera or audio input access. Choose Permissions to grant access, then retry.");
         if (VideoSelector.SelectedItem is not DeviceInfo vd || ModeSelector.SelectedItem is not VideoMode mode ||
             InputSelector.SelectedItem is not DeviceInfo ai || OutputSelector.SelectedItem is not DeviceInfo ao)
             throw new InvalidOperationException("Select a video device, supported mode, audio input and audio output.");
@@ -166,8 +189,10 @@ public partial class MainWindow : Window
         var level = Mute.IsChecked == true ? 0 : (float)Volume.Value;
         await Task.Run(() => audio.Start(ai.Id, ao.Id, level));
         rendered = previousRendered = previousCaptured = 0;
+        presentationSkipped = 0;
         lastStats = Stopwatch.GetTimestamp();
         running = true;
+        gpuFailed = false;
         StatusDot.Fill = (Brush)FindResource("Accent");
         StartButton.Content = "Stop capture";
         Placeholder.Visibility = Visibility.Collapsed;
@@ -177,6 +202,8 @@ public partial class MainWindow : Window
     private async Task StopAsync()
     {
         running = false;
+        GpuPreview.Reset();
+        GpuPreview.Visibility = Visibility.Collapsed;
         StatusDot.Fill = new SolidColorBrush(Color.FromRgb(130, 152, 175));
         if (video is not null)
         {
@@ -212,6 +239,31 @@ public partial class MainWindow : Window
     private void Render(object? sender, EventArgs e)
     {
         if (!running || video?.Frames.Take() is not VideoFrame frame) return;
+        frameWidth = frame.Width; frameHeight = frame.Height;
+        if (GpuEnabled.IsChecked == true && !gpuFailed)
+        {
+            try
+            {
+                GpuPreview.Visibility = Visibility.Visible;
+                FitGpuPreview();
+                if (GpuPreview.Present(frame))
+                {
+                    rendererStatus = $"D3D11 · {GpuPreview.AdapterName} · CPU RGB32 → GPU";
+                    deliveryMs = Stopwatch.GetElapsedTime(frame.ArrivalTicks).TotalMilliseconds;
+                    rendered++;
+                }
+                else presentationSkipped++;
+                return;
+            }
+            catch (Exception error) when (error is COMException or Win32Exception or DllNotFoundException or InvalidOperationException)
+            {
+                gpuFailed = true;
+                GpuPreview.Reset();
+                Log.Write("renderer.gpu.fallback", error);
+                rendererStatus = $"WPF fallback · D3D11 unavailable (0x{error.HResult:X8})";
+            }
+        }
+        GpuPreview.Visibility = Visibility.Collapsed;
         if (bitmap is null || bitmap.PixelWidth != frame.Width || bitmap.PixelHeight != frame.Height)
         {
             bitmap = new(frame.Width, frame.Height, 96, 96, PixelFormats.Bgr32, null);
@@ -227,12 +279,28 @@ public partial class MainWindow : Window
         var now = Stopwatch.GetTimestamp();
         var elapsed = Stopwatch.GetElapsedTime(lastStats, now).TotalSeconds;
         var count = video.Captured;
-        Diagnostics.Text = $"Capture {(count - previousCaptured) / elapsed:0.0} FPS · Render {(rendered - previousRendered) / elapsed:0.0} FPS · Dropped {video.Frames.Dropped} · CPU RGB32 · Delivery {deliveryMs:0.0} ms (not end-to-end) · Audio {audio?.BufferedMilliseconds:0} ms queued · Resets {audio?.BufferResets} · {audio?.Format}";
+        Diagnostics.Text = $"Capture {(count - previousCaptured) / elapsed:0.0} FPS · Render {(rendered - previousRendered) / elapsed:0.0} FPS · Dropped {video.Frames.Dropped + presentationSkipped} · {rendererStatus} · Delivery {deliveryMs:0.0} ms (not end-to-end) · Audio {audio?.BufferedMilliseconds:0} ms queued · Resets {audio?.BufferResets} · {audio?.Format}";
         previousCaptured = count;
         previousRendered = rendered;
         lastStats = now;
     }
     private void OnVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => audio?.SetVolume(Mute?.IsChecked == true ? 0 : (float)e.NewValue);
+    private void OnPreviewSizeChanged(object sender, SizeChangedEventArgs e) => FitGpuPreview();
+    private void FitGpuPreview()
+    {
+        if (GpuPreview is null || frameWidth < 1 || frameHeight < 1) return;
+        var scale = Math.Min(PreviewArea.ActualWidth / frameWidth, PreviewArea.ActualHeight / frameHeight);
+        GpuPreview.Width = Math.Max(1, frameWidth * scale);
+        GpuPreview.Height = Math.Max(1, frameHeight * scale);
+    }
+    private void OnRendererChanged(object sender, RoutedEventArgs e)
+    {
+        if (GpuPreview is null) return;
+        GpuPreview.Reset();
+        GpuPreview.Visibility = Visibility.Collapsed;
+        gpuFailed = false;
+        rendererStatus = GpuEnabled.IsChecked == true ? "D3D11 pending · CPU RGB32" : "WPF CPU upload";
+    }
     private void OnMuteChanged(object sender, RoutedEventArgs e) => audio?.SetVolume(Mute.IsChecked == true ? 0 : (float)Volume.Value);
     private void OnFullscreen(object sender, RoutedEventArgs e) => ToggleFullscreen(false);
     private void OnBorderless(object sender, RoutedEventArgs e) => ToggleFullscreen(true);
@@ -276,6 +344,7 @@ public partial class MainWindow : Window
         settings.Mode = ModeSelector.SelectedItem?.ToString();
         settings.Volume = Volume.Value;
         settings.Muted = Mute.IsChecked == true;
+        settings.UseGpuPreview = GpuEnabled.IsChecked == true;
     }
     private void ShowError(Exception error)
     {
@@ -283,6 +352,8 @@ public partial class MainWindow : Window
         StatusDot.Fill = new SolidColorBrush(Color.FromRgb(255, 165, 142));
         Status.Text = $"{error.Message} (0x{error.HResult:X8})";
         Diagnostics.Text = "Check USB/HDMI connections and Windows camera/microphone privacy permissions. Close other capture apps. Refresh and retry.";
+        if (error.HResult == unchecked((int)0x80070005))
+            Diagnostics.Text = "Access denied. Choose Permissions to open Windows camera/audio privacy settings. Enable desktop-app access, then refresh and retry.";
     }
     private async void OnClosing(object? sender, CancelEventArgs e)
     {

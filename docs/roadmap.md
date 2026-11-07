@@ -7,13 +7,15 @@
 - Independent WASAPI endpoint discovery, input capture, output playback, volume/mute and bounded audio queue.
 - Start/stop cleanup, reported-failure teardown, manual reconnect workflow, fullscreen and local settings.
 - Basic capture/render/drop/queue diagnostics, unit checks, native discovery probe, WPF smoke test and Windows CI.
+- D3D11 hardware upload/presentation, aspect-preserving native preview, renderer/adapter diagnostics, persisted GPU switch and automatic WPF fallback.
+- Camera/HDMI-audio capability checks, user-triggered consent/settings workflow and self-contained tagged release packaging.
 
 ## Next: qualify the vertical slice
 
 1. Validate real HDMI capture and playback on reference and unrelated UVC/UAC hardware. Correct driver-specific buffer/format issues discovered by those tests.
 2. Validate Discord window sharing with application audio independently. Keep support unconfirmed until an actual result is recorded.
 3. Introduce a common timestamp model, adjustable synchronization offset and measured clock-drift correction. Validate long-session lip-sync and discontinuities.
-4. Profile CPU/frame allocation and implement D3D11 shared-texture presentation while preserving a tested CPU fallback.
+4. Profile CPU/frame allocation; extend the existing D3D11 renderer with GPU color conversion, Media Foundation device-manager integration and shared-texture delivery. Validate actual hardware decoder paths per native format.
 
 ## Reliability and releases
 

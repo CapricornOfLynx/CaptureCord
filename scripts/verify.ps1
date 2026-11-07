@@ -12,5 +12,6 @@ try {
     $process = Start-Process -FilePath $app -ArgumentList '--smoke-test' -WindowStyle Hidden -PassThru
     if (-not $process.WaitForExit(20000)) { $process.Kill(); throw 'WPF smoke test timed out' }
     if ($process.ExitCode -ne 0) { throw "WPF smoke test failed: $($process.ExitCode)" }
+    Get-Content (Join-Path (Split-Path $app) 'ui-smoke\gpu-result.txt')
     Write-Host 'PASS WPF startup, dropdown rendering/contrast/selection, native enumeration and clean shutdown (no capture activated)'
 } finally { Pop-Location }

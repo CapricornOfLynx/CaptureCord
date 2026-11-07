@@ -1,0 +1,21 @@
+<Window x:Class="CaptureCord.App.PermissionsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CaptureCord · Device permissions" Icon="Assets/CaptureCord.ico" Width="610" Height="520" MinWidth="500" MinHeight="450" WindowStartupLocation="CenterOwner"
+        Background="#0B111B" Foreground="#EDF4FC" FontFamily="Segoe UI" FontSize="13" Loaded="OnLoaded" Activated="OnActivated">
+  <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="24">
+    <TextBlock Text="Device permissions" FontSize="24" FontWeight="SemiBold"/>
+    <TextBlock Text="Control access through Windows" Foreground="{StaticResource TextSecondary}" Margin="0,6,0,20"/>
+    <Border Background="{StaticResource Panel}" CornerRadius="12" Padding="16" Margin="0,0,0,12"><StackPanel>
+      <TextBlock Text="Camera / video capture" FontWeight="SemiBold" FontSize="15"/>
+      <TextBlock x:Name="CameraStatus" TextWrapping="Wrap" Margin="0,8,0,12" Foreground="{StaticResource TextSecondary}"/>
+      <Button x:Name="CameraGrant" Content="Grant camera access" Click="OnCameraGrant" HorizontalAlignment="Left"/>
+    </StackPanel></Border>
+    <Border Background="{StaticResource Panel}" CornerRadius="12" Padding="16"><StackPanel>
+      <TextBlock Text="Microphone / HDMI audio input" FontWeight="SemiBold" FontSize="15"/>
+      <TextBlock x:Name="AudioStatus" TextWrapping="Wrap" Margin="0,8,0,12" Foreground="{StaticResource TextSecondary}"/>
+      <Button x:Name="AudioGrant" Content="Grant audio input access" Click="OnAudioGrant" HorizontalAlignment="Left"/>
+    </StackPanel></Border>
+    <TextBlock Text="Windows may group this portable app under desktop apps. Enable device access and desktop-app access on the page that opens. HDMI audio uses the microphone privacy category; playback does not require a microphone permission. Administrator policies may prevent changes." TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontSize="11" Margin="0,16,0,12"/>
+    <TextBlock x:Name="Feedback" TextWrapping="Wrap" Foreground="#FFB49B" Margin="0,0,0,12"/>
+    <StackPanel Orientation="Horizontal"><Button Content="Check again" Click="OnCheck" Margin="0,0,10,0"/><Button Content="Done" Click="OnDone" IsCancel="True"/></StackPanel>
+  </StackPanel></ScrollViewer>
+</Window>

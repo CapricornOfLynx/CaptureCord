@@ -11,6 +11,7 @@ public sealed class Settings
     public string? Mode { get; set; }
     public double Volume { get; set; } = 0.8;
     public bool Muted { get; set; }
+    public bool UseGpuPreview { get; set; } = true;
     public double Width { get; set; } = 1180;
     public double Height { get; set; } = 780;
     public double? Left { get; set; }

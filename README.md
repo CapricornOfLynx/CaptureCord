@@ -12,11 +12,19 @@ The dark interface provides independent video/audio selectors with readable them
 
 The original CaptureCord icon combines a capture frame with a play symbol. Its editable vector source is `src/CaptureCord.App/Assets/Icon.xaml`; `powershell -STA -File scripts/build-icon.ps1` regenerates PNG and multi-resolution ICO assets without external tools. The icon is embedded in the executable, window and application header.
 
-**Known gaps:** CPU frame conversion/copying rather than D3D11 texture presentation; no shared audio/video presentation clock or automatic drift correction; recovery is manual refresh/restart rather than automatic reconnect; no DirectShow fallback; no measured HDMI latency or confirmed Discord audio capture. The UGREEN B0DGXJS6BF reference device has not been validated. See [roadmap](docs/roadmap.md) and [hardware validation](docs/testing.md).
+**GPU preview:** Enabled by default, Direct3D 11 uploads RGB32 frames to GPU buffers and presents them through a DXGI swapchain on the default hardware adapter. The preview preserves aspect ratio and follows resizing/fullscreen. Diagnostics identify the adapter and active path. Disable **GPU preview** to use WPF, or leave it enabled for automatic fallback if initialization/presentation fails. Hardware decoding, GPU color conversion and a zero-copy capture pipeline are not implemented; the capture stage still produces CPU RGB32 frames. No proprietary GPU SDK is needed.
+
+**Permissions:** Choose **Permissions** to inspect camera and HDMI-audio input access. When supported, **Grant access** requests Windows consent; otherwise it opens Camera or Microphone privacy settings. Enable the device/desktop-app switches there and return to recheck. This portable desktop app cannot change permission switches itself. Unknown/unsupported status is not falsely shown as allowed; actual device opening remains authoritative. HDMI audio input is controlled by the microphone category, independently of the microphone selected in Discord.
+
+**Known gaps:** no shared audio/video presentation clock or automatic drift correction; recovery is manual refresh/restart rather than automatic reconnect; no DirectShow fallback; no measured HDMI latency or confirmed Discord audio capture. The UGREEN B0DGXJS6BF reference device has not been validated. See [roadmap](docs/roadmap.md) and [hardware validation](docs/testing.md).
+
+## Download
+
+The [GitHub releases](https://github.com/CapricornOfLynx/CaptureCord/releases) provide a Windows x64 ZIP containing a ready-to-run, self-contained `CaptureCord.App.exe` with .NET included. Extract the complete ZIP and keep its license/third-party notices. No separate .NET installation is needed for that download. Alpha builds are unsigned and are not hardware-certified releases.
 
 ## Build and run
 
-Install the .NET 10 SDK on Windows x64 (the .NET 10 Desktop Runtime is needed to run framework-dependent builds). Open `CaptureCord.sln` in an IDE supporting .NET 10, or run from this directory:
+Install the .NET 10 SDK on Windows x64 (the .NET 10 Desktop Runtime is needed only for framework-dependent builds). Open `CaptureCord.sln` in an IDE supporting .NET 10, or run from this directory:
 
 ```powershell
 dotnet restore --locked-mode
@@ -44,6 +52,8 @@ dotnet run --project tests/CaptureCord.Tests -c Release -- --probe
 ```
 
 `verify.ps1` performs a locked restore, Release build, dependency-free executable unit tests, direct/transitive dependency-license validation, and an invisible WPF startup/shutdown smoke test. The smoke test also opens all four dropdowns off-screen with synthetic entries, verifies text contrast and selection, and renders full/compact window previews under the application's build output `ui-smoke` directory. The unit suite is intentionally an executable; `dotnet test` alone does not run these checks. `--probe` additionally enumerates devices without opening cameras or recording microphones. Hardware and Discord checks are manual and listed in `docs/testing.md`.
+
+GPU smoke checks perform hardware upload/readback comparison, presentation and buffer recreation. A host without a hardware adapter reports a skip instead of claiming a hardware pass. The permission window and status checks are exercised without requesting access or opening privacy settings. See [release packaging](docs/releases.md) for the pinned self-contained build and publication process.
 
 ## Settings, diagnostics and licenses
 

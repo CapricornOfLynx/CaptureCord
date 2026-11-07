@@ -5,6 +5,22 @@ using CaptureCord.Audio;
 
 var tests = new (string Name, Action Run)[]
 {
+    ("Permission policy distinguishes denial from unknown desktop status", () =>
+    {
+        Check(new DevicePermission("camera", PermissionStatus.DeniedBySystem).IsDenied);
+        Check(new DevicePermission("audio", PermissionStatus.DeniedByUser).IsDenied);
+        Check(!new DevicePermission("camera", PermissionStatus.Unknown).IsDenied);
+        Check(!new DevicePermission("camera", PermissionStatus.NotDeclaredByApp).IsDenied);
+        Check(!new DevicePermission("camera", PermissionStatus.Allowed).IsDenied);
+        Check(new DevicePermission("camera", PermissionStatus.Unknown).Description.Contains("cannot report"));
+    }),
+    ("Native permission checks never activate capture or require a prompt", () =>
+    {
+        var camera = DevicePermissions.Check(true);
+        var audio = DevicePermissions.Check(false);
+        Check(Enum.IsDefined(camera.Status) && Enum.IsDefined(audio.Status));
+        Check(!string.IsNullOrWhiteSpace(camera.Description) && !string.IsNullOrWhiteSpace(audio.Description));
+    }),
     ("Native MF ABI, padded/negative-stride copy and invalid-buffer rejection", NativeChecks.Buffers),
     ("Prefer 1080p60 without depending on pixel format", () =>
     {

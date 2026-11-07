@@ -1,0 +1,29 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.403'
+      - name: Verify source
+        shell: pwsh
+        run: ./scripts/verify.ps1
+      - name: Build and smoke-test self-contained EXE
+        shell: pwsh
+        run: ./scripts/package-release.ps1 -Version ($env:GITHUB_REF_NAME.Substring(1))
+      - name: Publish release with ready-to-run EXE ZIP and checksums
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:GITHUB_REF_NAME
+          $assets = Get-ChildItem artifacts/release -File | Select-Object -ExpandProperty FullName
+          gh release create $version @assets --verify-tag --prerelease --title "CaptureCord $version" --notes-file docs/release-notes.md
+          if ($LASTEXITCODE) { throw 'GitHub release publication failed' }
